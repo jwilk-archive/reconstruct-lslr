@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+import os
+import sys
+
+for line in sys.stdin:
+    line = line.rstrip()
+    if line.startswith('/'):
+        assert line[-1] == ':'
+        cwd = line[:-1]
+        assert "'" not in cwd
+        print("mkdir -p '{}'".format(cwd))
+        print("cd '{}' || exit 1".format(cwd))
+        continue
+    if line == '' or line.startswith('total '):
+        continue
+    if line.startswith('l'):
+        source, arrow, target = line.split()[-3:]
+        assert arrow == '->'
+        assert "'" not in source
+        assert "'" not in target
+        print("ln -s '{}' '{}'".format(target, source))
+        continue
+    if line.startswith('d'):
+        source = line.split()[-1]
+        assert "'" not in source
+        print("mkdir -p '{}'".format(source))
+        continue
+    if line.startswith(('-', 's')):
+        source = line.split()[-1]
+        assert "'" not in source
+        print("ln -s /dev/missing '{}'".format(source))
+        continue
+    raise ValueError(line)
+
+# vim:ts=4 sw=4 et
